@@ -2,18 +2,27 @@
 
 믿어유(metheyou) 서비스 통합 관리 웹앱
 
-## 1. 프로젝트 개요
+## 스크린샷
+
+|라이트|다크|
+|-|-|
+|<img width="2135" height="1268" alt="image" src="https://github.com/user-attachments/assets/8d93b9ef-d9f9-4531-bbb3-e74423e675e0" />|<img width="2136" height="1263" alt="image" src="https://github.com/user-attachments/assets/ca5220da-f43d-4385-9199-9a62ecfbc9f7" />|
+|<img width="2143" height="1268" alt="image" src="https://github.com/user-attachments/assets/77c7619b-7afc-430c-ae2d-71bef05870de" />|<img width="2135" height="1268" alt="image" src="https://github.com/user-attachments/assets/3dd5f821-2851-4ccf-aeed-bf761e1bce36" />|
+|<img width="2135" height="1269" alt="image" src="https://github.com/user-attachments/assets/100dcfdd-bf09-496f-922a-ce3fd8b16837" />|<img width="2138" height="1265" alt="image" src="https://github.com/user-attachments/assets/1cf21576-5c44-4c3b-b13a-19066c4b5e02" />|
+
+
+## 개요
 - **프로젝트명**: metheyou-manager
 - **목적**: '믿어유' 서비스의 전반적인 운영, 계정 관리 및 데이터 분석을 위한 관리자용 통합 시스템
 - **아키텍처**: 자체 구축한 경량 MVC(Model-View-Controller) 패턴 적용
 
-## 2. 주요 기술 스택
+## 기술 스택
 - **Backend**: PHP 8.x
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Frontend**: Vanila JS, Bulma CSS
 - **Package Manager**: Composer
 - **Environment**: `.env` 기반 설정 (`vlucas/phpdotenv` 사용)
 
-## 3. 주요 기능
+## 주요 기능
 - **인증 관리 (Auth)**: 관리자 로그인 및 세션 제어
 - **계정 관리 (Account)**: 서비스 이용자 및 관리자 계정 조회, 관리
 - **분석 통계 (Analysis)**: 서비스 주요 지표 및 데이터 분석 대시보드 제공

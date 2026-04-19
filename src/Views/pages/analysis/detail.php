@@ -113,7 +113,7 @@
             <div>
                 <h3 class="section-title">
                     <i class="bx bx-tag"></i>
-                    Keywords / Tags
+                    키워드 (태그)
                 </h3>
                 <div class="tags-container">
                     <?php foreach(explode(',', $analysis['tags']) as $tag): ?>
@@ -132,7 +132,7 @@
         <div class="tasks-header">
             <h3 class="tasks-header-title">
                 <i class="bx bx-task"></i>
-                Related Tasks
+                수행 작업 ID
             </h3>
         </div>
             <div>
@@ -183,11 +183,11 @@
             <div class="tasks-header">
                 <h3 class="tasks-header-title">
                     <i class="bx bx-math"></i>
-                    Video Embedding (Snapshot)
+                    고유 벡터 (임베딩)
                 </h3>
             </div>
             <div style="padding: 0.8rem; font-family: monospace; font-size: 0.75rem; background: var(--bg-1); border-radius: 4px; word-break: break-all; color: var(--text-2);">
-                <?= htmlspecialchars(substr($currentEmbedding, 0, 100)) ?>...
+                <?= htmlspecialchars(substr($currentEmbedding, 0, 500)) ?>...
             </div>
         </div>
         <?php endif; ?>
@@ -197,7 +197,7 @@
             <div class="tasks-header">
                 <h3 class="tasks-header-title">
                     <i class="bx bx-video"></i>
-                    Related Videos
+                    유사 비디오 (<?= count($relatedVideos) ?>개)
                 </h3>
             </div>
             <div>

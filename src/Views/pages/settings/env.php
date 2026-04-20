@@ -21,20 +21,25 @@
                                 <td><span class="tag is-info has-text-weight-bold"><?= htmlspecialchars($key) ?></span></td>
                                 <td>
                                     <!-- 수정 폼 -->
-                                    <form action="/settings/env/store" method="POST" style="display:flex; width:100%; gap: 0.5rem;">
+                                    <form id="form-<?= htmlspecialchars($key) ?>" action="/settings/env/store" method="POST" style="width:100%;">
                                         <input type="hidden" name="key" value="<?= htmlspecialchars($key) ?>">
-                                        <input type="text" name="value" class="input is-small" value="<?= htmlspecialchars($value) ?>" required>
-                                        <button type="submit" class="button is-small is-primary">저장</button>
+                                        <input type="text" name="value" class="input is-small" style="min-width: 100px;" value="<?= htmlspecialchars($value) ?>" required>
                                     </form>
                                 </td>
                                 <td>
-                                    <!-- 삭제 폼 -->
-                                    <form action="/settings/env/delete" method="POST" style="display:inline;" onsubmit="return confirm('[<?= htmlspecialchars($key) ?>] 키를 정말 삭제하시겠습니까? 관련 기능이 멈출 수 있습니다.');">
-                                        <input type="hidden" name="key" value="<?= htmlspecialchars($key) ?>">
-                                        <button type="submit" class="button is-small is-danger">
-                                            <i class="bx bx-trash"></i> 삭제
+                                    <div style="display:flex; gap: 0.5rem;">
+                                        <!-- 저장 버튼 -->
+                                        <button type="submit" form="form-<?= htmlspecialchars($key) ?>" class="button is-small is-primary">
+                                            <i class="bx bx-save"></i> 저장
                                         </button>
-                                    </form>
+                                        <!-- 삭제 폼 -->
+                                        <form action="/settings/env/delete" method="POST" style="display:inline;" onsubmit="return confirm('[<?= htmlspecialchars($key) ?>] 키를 정말 삭제하시겠습니까? 관련 기능이 멈출 수 있습니다.');">
+                                            <input type="hidden" name="key" value="<?= htmlspecialchars($key) ?>">
+                                            <button type="submit" class="button is-small is-danger">
+                                                <i class="bx bx-trash"></i> 삭제
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

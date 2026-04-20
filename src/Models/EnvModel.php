@@ -24,6 +24,14 @@ class EnvModel {
                 $parts = explode('=', $line, 2);
                 $key = trim($parts[0]);
                 $value = trim($parts[1]);
+                
+                // 앞뒤 따옴표 제거
+                if (preg_match('/^"(.*)"$/', $value, $matches) || preg_match("/^'(.*)'$/", $value, $matches)) {
+                    $value = $matches[1];
+                    // 이스케이프된 따옴표 복원
+                    $value = str_replace(['\\\\', '\"', "\\'"], ['\\', '"', "'"], $value);
+                }
+                
                 $vars[$key] = $value;
             }
         }
@@ -33,6 +41,13 @@ class EnvModel {
 
     public static function updateEnvVariable($key, $value) {
         $path = self::getEnvPath();
+        
+        // 공백 문자 등이 포함되어 있으면 큰따옴표로 감싸기
+        $safeValue = $value;
+        if (preg_match('/[= \'"$\\\\]/', $value) || empty($value)) {
+            $safeValue = '"' . str_replace(['\\', '"'], ['\\\\', '\"'], $value) . '"';
+        }
+
         if (!file_exists($path)) {
             file_put_contents($path, '');
         }
@@ -53,7 +68,7 @@ class EnvModel {
                 $parts = explode('=', $line, 2);
                 $k = trim($parts[0]);
                 if ($k === $key) {
-                    $newLines[] = "{$key}={$value}";
+                    $newLines[] = "{$key}={$safeValue}";
                     $found = true;
                 } else {
                     $newLines[] = $line;
@@ -64,7 +79,7 @@ class EnvModel {
         }
 
         if (!$found) {
-            $newLines[] = "{$key}={$value}";
+            $newLines[] = "{$key}={$safeValue}";
         }
 
         return file_put_contents($path, implode(PHP_EOL, $newLines) . PHP_EOL) !== false;

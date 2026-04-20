@@ -45,6 +45,14 @@ $menuGroups = [
             'activePrefix' => ['/refer']
         ],
     ],
+    '설정' => [
+        [
+            'path'         => '/settings/env',
+            'icon'         => 'bx-cog',
+            'title'        => '환경 설정',
+            'activePrefix' => ['/settings/env']
+        ],
+    ],
 ];
 
 // 활성화 여부 확인 함수
@@ -63,6 +71,12 @@ $isActive = function($activePrefixPatterns, $currentPath) {
         </div>
 
         <?php foreach ($menuGroups as $groupName => $items): ?>
+            <?php 
+                // 설정 메뉴는 Super Admin에게만 표시
+                if ($groupName === '설정' && (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'Super Admin')) {
+                    continue;
+                }
+            ?>
             <p class="menu-label"><?= $groupName ?></p>
             <ul class="menu-list">
                 <?php foreach ($items as $item): ?>

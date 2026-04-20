@@ -23,7 +23,7 @@
                                 <td><?= htmlspecialchars($account['username']) ?></td>
                                 <td><?= htmlspecialchars($account['email']) ?></td>
                                 <td>
-                                    <span class="tag <?= $account['role'] === 'Super Admin' ? 'is-primary is-light' : 'is-warning is-light' ?>">
+                                    <span class="tag <?= $account['role'] === 'Super Admin' ? 'is-primary' : 'is-warning' ?>">
                                         <?= htmlspecialchars($account['role']) ?>
                                     </span>
                                 </td>
@@ -34,7 +34,7 @@
                                         <?php 
                                             $canDelete = isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $account['id'] || (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin'));
                                         ?>
-                                        <button type="submit" class="button is-small is-danger is-light" <?= !$canDelete ? 'disabled' : '' ?>>
+                                        <button type="submit" class="button is-small is-danger" <?= !$canDelete ? 'disabled' : '' ?>>
                                             <i class="bx bx-trash"></i> 삭제
                                         </button>
                                     </form>

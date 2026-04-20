@@ -4,6 +4,7 @@ namespace App\Core;
 use App\Controllers\AuthController;
 use App\Controllers\AnalysisController;
 use App\Controllers\AccountController;
+use App\Controllers\SettingsController;
 use App\Controllers\ErrorController;
 
 class Router {
@@ -54,6 +55,18 @@ class Router {
             case '/logout':
                 $controller = new AuthController();
                 $controller->logout();
+                break;
+            case '/settings/env':
+                $controller = new SettingsController();
+                $controller->envIndex();
+                break;
+            case '/settings/env/store':
+                $controller = new SettingsController();
+                $controller->envStore();
+                break;
+            case '/settings/env/delete':
+                $controller = new SettingsController();
+                $controller->envDelete();
                 break;
             default:
                 $controller = new ErrorController();

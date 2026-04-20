@@ -1,14 +1,42 @@
 <div class="analysis-page-container">
-    <div class="analysis-header">
-        <h2 class="analysis-title">분석 DB 목록</h2>
-        <!-- <p class="analysis-subtitle"></p> -->
+    <div class="analysis-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 class="analysis-title">분석 DB 목록</h2>
+        </div>
+        
+        <form class="search-form" id="searchForm">
+            <select name="searchType" id="searchType" class="search-select">
+                <option value="title" <?= $filters['searchType'] === 'title' ? 'selected' : '' ?>>영상명</option>
+                <option value="channel_name" <?= $filters['searchType'] === 'channel_name' ? 'selected' : '' ?>>채널명</option>
+                <option value="youtube_video_id" <?= $filters['searchType'] === 'youtube_video_id' ? 'selected' : '' ?>>비디오 ID</option>
+                <option value="task_id" <?= $filters['searchType'] === 'task_id' ? 'selected' : '' ?>>작업 ID</option>
+            </select>
+
+            <input type="text" name="keyword" id="keyword" class="search-input" value="<?= htmlspecialchars($filters['keyword']) ?>" placeholder="검색어 입력...">
+
+            <select name="orderBy" id="orderBy" class="search-select">
+                <option value="created_at" <?= $filters['orderBy'] === 'created_at' ? 'selected' : '' ?>>생성일</option>
+                <option value="channel_name" <?= $filters['orderBy'] === 'channel_name' ? 'selected' : '' ?>>채널명</option>
+                <option value="title" <?= $filters['orderBy'] === 'title' ? 'selected' : '' ?>>영상명</option>
+            </select>
+
+            <select name="orderDir" id="orderDir" class="search-select">
+                <option value="DESC" <?= strtoupper($filters['orderDir']) === 'DESC' ? 'selected' : '' ?>>내림차순</option>
+                <option value="ASC" <?= strtoupper($filters['orderDir']) === 'ASC' ? 'selected' : '' ?>>오름차순</option>
+            </select>
+
+            <button type="submit" class="search-btn">
+                <i class="bx bx-search"></i>
+                검색
+            </button>
+        </form>
     </div>
 
-    <div class="analysis-list-box">
+    <div class="analysis-list-box" style="margin-top: 1rem;">
         <!-- Top Pagination Info -->
         <div class="pagination-top-bar">
             <div>
-                <span class="total-count-text">총 <span id="totalCountDisplay" class="total-count-number"><?= $totalCount ?></span>개 분석됨</span>
+                <span class="total-count-text">총 <span id="totalCountDisplay" class="total-count-number"><?= $totalCount ?></span>건</span>
             </div>
             <div class="pagination-controls">
                 <button id="topPrevBtn" class="pagination-btn" onclick="goToPreviousPage()">
@@ -37,10 +65,18 @@
                     </tr>
                 </thead>
                 <tbody class="analysis-table-body" id="analysisTableBody">
+                    <?php 
+                    $queryArr = ['page' => $currentPage];
+                    if(!empty($filters['searchType'])) $queryArr['searchType'] = $filters['searchType'];
+                    if(isset($filters['keyword']) && $filters['keyword'] !== '') $queryArr['keyword'] = $filters['keyword'];
+                    if(!empty($filters['orderBy'])) $queryArr['orderBy'] = $filters['orderBy'];
+                    if(!empty($filters['orderDir'])) $queryArr['orderDir'] = $filters['orderDir'];
+                    $queryStr = http_build_query($queryArr);
+                    ?>
                     <?php foreach ($analyses as $row): ?>
                     <tr>
                         <td>
-                            <a href="/analysis/detail?id=<?= $row['id'] ?>&page=<?= $currentPage ?>" class="thumbnail-link">
+                            <a href="/analysis/detail?id=<?= $row['id'] ?>&<?= $queryStr ?>" class="thumbnail-link">
                                 <img src="https://img.youtube.com/vi/<?= htmlspecialchars($row['youtube_video_id']) ?>/maxresdefault.jpg" alt="<?= htmlspecialchars($row['title'] ?? 'N/A') ?>" class="thumbnail-img">
                             </a>
                         </td>
@@ -69,7 +105,7 @@
                             <?= htmlspecialchars(date('M j, Y', strtotime($row['created_at']))) ?>
                         </td>
                         <td style="text-align: center;">
-                            <a href="/analysis/detail?id=<?= $row['id'] ?>&page=<?= $currentPage ?>" class="action-button">
+                            <a href="/analysis/detail?id=<?= $row['id'] ?>&<?= $queryStr ?>" class="action-button">
                                 <i class="bx bx-show"></i>
                                 <span>View</span>
                             </a>
@@ -81,7 +117,7 @@
                         <td colspan="7">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open empty-state-icon"></i>
-                                <p class="empty-state-text">No analysis results found.</p>
+                                <p class="empty-state-text">분석 결과가 없습니다.</p>
                             </div>
                         </td>
                     </tr>
@@ -111,7 +147,21 @@
 
 <script>
 let currentPage = <?= $currentPage ?>;
-let totalPages = Math.ceil(<?= $totalCount ?> / 15);
+let totalPages = Math.max(1, Math.ceil(<?= $totalCount ?> / 15));
+
+function getFiltersQuery() {
+    const searchType = document.getElementById('searchType').value;
+    const keyword = document.getElementById('keyword').value;
+    const orderBy = document.getElementById('orderBy').value;
+    const orderDir = document.getElementById('orderDir').value;
+    
+    return `&searchType=${encodeURIComponent(searchType)}&keyword=${encodeURIComponent(keyword)}&orderBy=${encodeURIComponent(orderBy)}&orderDir=${encodeURIComponent(orderDir)}`;
+}
+
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    loadPage(1);
+});
 
 function renderTableRows(data) {
     const tbody = document.getElementById('analysisTableBody');
@@ -123,7 +173,7 @@ function renderTableRows(data) {
                 <td colspan="7">
                     <div class="empty-state">
                         <i class="bx bx-folder-open empty-state-icon"></i>
-                        <p class="empty-state-text">No analysis results found.</p>
+                        <p class="empty-state-text">분석 결과가 없습니다.</p>
                     </div>
                 </td>
             </tr>
@@ -135,10 +185,21 @@ function renderTableRows(data) {
         const scoreClass = row.score >= 70 ? 'success' : (row.score >= 30 ? 'warning' : 'danger');
         const date = new Date(row.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         
+        const searchType = document.getElementById('searchType').value;
+        const keyword = document.getElementById('keyword').value;
+        const orderBy = document.getElementById('orderBy').value;
+        const orderDir = document.getElementById('orderDir').value;
+        
+        let queryStr = `page=${currentPage}`;
+        if(searchType) queryStr += `&searchType=${encodeURIComponent(searchType)}`;
+        if(keyword !== '') queryStr += `&keyword=${encodeURIComponent(keyword)}`;
+        if(orderBy) queryStr += `&orderBy=${encodeURIComponent(orderBy)}`;
+        if(orderDir) queryStr += `&orderDir=${encodeURIComponent(orderDir)}`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <a href="/analysis/detail?id=${row.id}&page=${currentPage}" class="thumbnail-link">
+                <a href="/analysis/detail?id=${row.id}&${queryStr}" class="thumbnail-link">
                     <img src="https://img.youtube.com/vi/${row.youtube_video_id}/maxresdefault.jpg" alt="${row.title || 'N/A'}" class="thumbnail-img">
                 </a>
             </td>
@@ -161,7 +222,7 @@ function renderTableRows(data) {
                 ${date}
             </td>
             <td style="text-align: center;">
-                <a href="/analysis/detail?id=${row.id}&page=${currentPage}" class="action-button">
+                <a href="/analysis/detail?id=${row.id}&${queryStr}" class="action-button">
                     <i class="bx bx-show"></i>
                     <span>View</span>
                 </a>
@@ -187,7 +248,10 @@ function renderPageNumbers() {
     }
 }
 
-function updatePaginationUI() {
+function updatePaginationUI(totalCount = null) {
+    if (totalCount !== null) {
+        document.getElementById('totalCountDisplay').textContent = totalCount;
+    }
     document.getElementById('currentPageDisplay').textContent = currentPage;
     document.getElementById('totalPagesDisplay').textContent = totalPages;
     
@@ -198,28 +262,40 @@ function updatePaginationUI() {
     const firstPageBtn = document.getElementById('firstPageBtn');
     const lastPageBtn = document.getElementById('lastPageBtn');
     
-    topPrevBtn.disabled = currentPage === 1;
-    topNextBtn.disabled = currentPage === totalPages;
-    bottomPrevBtn.disabled = currentPage === 1;
-    bottomNextBtn.disabled = currentPage === totalPages;
-    firstPageBtn.disabled = currentPage === 1;
-    lastPageBtn.disabled = currentPage === totalPages;
+    topPrevBtn.disabled = currentPage === 1 || totalPages <= 1;
+    topNextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    bottomPrevBtn.disabled = currentPage === 1 || totalPages <= 1;
+    bottomNextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    firstPageBtn.disabled = currentPage === 1 || totalPages <= 1;
+    lastPageBtn.disabled = currentPage === totalPages || totalPages === 0;
     
     renderPageNumbers();
 }
 
 function loadPage(page, pushState = true) {
-    fetch(`/api/analysis?page=${page}`)
+    const filtersStr = getFiltersQuery();
+    fetch(`/api/analysis?page=${page}${filtersStr}`)
         .then(response => response.json())
         .then(data => {
             currentPage = data.currentPage;
-            totalPages = data.totalPages;
+            totalPages = Math.max(1, data.totalPages);
             renderTableRows(data.data);
-            updatePaginationUI();
+            updatePaginationUI(data.totalCount);
             
             if (pushState) {
                 const url = new URL(window.location);
                 url.searchParams.set('page', page);
+                
+                const searchType = document.getElementById('searchType').value;
+                const keyword = document.getElementById('keyword').value;
+                const orderBy = document.getElementById('orderBy').value;
+                const orderDir = document.getElementById('orderDir').value;
+                
+                url.searchParams.set('searchType', searchType);
+                url.searchParams.set('keyword', keyword);
+                url.searchParams.set('orderBy', orderBy);
+                url.searchParams.set('orderDir', orderDir);
+
                 window.history.pushState({ page: page }, '', url);
             }
             
@@ -227,7 +303,7 @@ function loadPage(page, pushState = true) {
         })
         .catch(error => {
             console.error('Error loading page:', error);
-            alert('Failed to load data. Please try again.');
+            alert('Failed to load analysis data. Please try again.');
         });
 }
 
@@ -255,20 +331,31 @@ function goToLastPage() {
     }
 }
 
-// Handle browser back/forward buttons
 window.addEventListener('popstate', function(event) {
-    const page = event.state ? event.state.page : (new URL(window.location)).searchParams.get('page') || 1;
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page') || 1;
+    
+    // URL에 파라미터가 있으면 폼 필드 상태도 동기화합니다.
+    if (params.has('searchType')) {
+        document.getElementById('searchType').value = params.get('searchType');
+    }
+    if (params.has('keyword')) {
+        document.getElementById('keyword').value = params.get('keyword');
+    }
+    if (params.has('orderBy')) {
+        document.getElementById('orderBy').value = params.get('orderBy');
+    }
+    if (params.has('orderDir')) {
+        document.getElementById('orderDir').value = params.get('orderDir');
+    }
+    
     loadPage(Number(page), false);
 });
 
-// Initialize pagination UI on page load
 document.addEventListener('DOMContentLoaded', function() {
     const currentUrl = new URL(window.location);
     if (!currentUrl.searchParams.has('page') && currentPage > 1) {
-        // Just sync URL visually if first load came with php variables but no param
         currentUrl.searchParams.set('page', currentPage);
-        window.history.replaceState({ page: currentPage }, '', currentUrl);
-    } else {
         window.history.replaceState({ page: currentPage }, '', currentUrl);
     }
     updatePaginationUI();

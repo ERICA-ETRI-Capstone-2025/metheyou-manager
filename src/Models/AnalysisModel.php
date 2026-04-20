@@ -26,6 +26,66 @@ class AnalysisModel {
         return $stmt->fetchAll();
     }
 
+    private function buildSearchQuery($filters, &$params) {
+        $searchType = $filters['searchType'] ?? 'title';
+        $keyword = $filters['keyword'] ?? '';
+
+        $joins = "";
+        $where = "1=1";
+
+        if (!empty($keyword)) {
+            if ($searchType === 'task_id') {
+                $joins = "LEFT JOIN tasks t ON a.id = t.analysis_id";
+                $where .= " AND t.task_id LIKE ?";
+                $params[] = "%" . $keyword . "%";
+            } else {
+                $allowedColumns = ['title', 'channel_name', 'youtube_video_id'];
+                $column = in_array($searchType, $allowedColumns) ? $searchType : 'title';
+                $where .= " AND a.$column LIKE ?";
+                $params[] = "%" . $keyword . "%";
+            }
+        }
+
+        return [$joins, $where];
+    }
+
+    public function getSearchTotalCount($filters) {
+        $db = Database::getMariaDb();
+        $params = [];
+        list($joins, $where) = $this->buildSearchQuery($filters, $params);
+        
+        $query = "SELECT COUNT(DISTINCT a.id) as count FROM analysis a $joins WHERE $where";
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+        $result = $stmt->fetch();
+        return $result['count'];
+    }
+
+    public function searchPaginated($filters, $page = 1, $limit = 15) {
+        $offset = (int)(($page - 1) * $limit);
+        $limit = (int)$limit;
+        $db = Database::getMariaDb();
+        
+        $params = [];
+        list($joins, $where) = $this->buildSearchQuery($filters, $params);
+
+        $orderBy = $filters['orderBy'] ?? 'created_at';
+        $orderDir = strtoupper($filters['orderDir'] ?? 'DESC');
+
+        $allowedOrderColumns = ['created_at', 'channel_name', 'title'];
+        if (!in_array($orderBy, $allowedOrderColumns)) {
+            $orderBy = 'created_at';
+        }
+        if ($orderDir !== 'ASC' && $orderDir !== 'DESC') {
+            $orderDir = 'DESC';
+        }
+
+        $query = "SELECT DISTINCT a.* FROM analysis a $joins WHERE $where ORDER BY a.$orderBy $orderDir LIMIT $limit OFFSET $offset";
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById($id) {
         $db = Database::getMariaDb();
         $stmt = $db->prepare("SELECT * FROM analysis WHERE id = ?");

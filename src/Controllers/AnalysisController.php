@@ -7,19 +7,48 @@ use App\Views\View;
 class AnalysisController {
     public function index() {
         $model = new AnalysisModel();
+        
+        $searchType = $_GET['searchType'] ?? 'title';
+        $keyword = $_GET['keyword'] ?? '';
+        $orderBy = $_GET['orderBy'] ?? 'created_at';
+        $orderDir = $_GET['orderDir'] ?? 'DESC';
+        
+        $filters = [
+            'searchType' => $searchType,
+            'keyword' => $keyword,
+            'orderBy' => $orderBy,
+            'orderDir' => $orderDir
+        ];
+        
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $analyses = $model->getPaginated($page, 15);
-        $totalCount = $model->getTotalCount();
+        $limit = 15;
+        
+        $analyses = $model->searchPaginated($filters, $page, $limit);
+        $totalCount = $model->getSearchTotalCount($filters);
+        
         View::render('analysis/index', [
             'analyses' => $analyses,
             'totalCount' => $totalCount,
             'currentPage' => $page,
-            'limit' => 15
+            'limit' => $limit,
+            'filters' => $filters
         ]);
     }
 
     public function getAnalysisData() {
         header('Content-Type: application/json');
+        
+        $searchType = $_GET['searchType'] ?? 'title';
+        $keyword = $_GET['keyword'] ?? '';
+        $orderBy = $_GET['orderBy'] ?? 'created_at';
+        $orderDir = $_GET['orderDir'] ?? 'DESC';
+
+        $filters = [
+            'searchType' => $searchType,
+            'keyword' => $keyword,
+            'orderBy' => $orderBy,
+            'orderDir' => $orderDir
+        ];
         
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $limit = 15;
@@ -29,9 +58,9 @@ class AnalysisController {
         }
         
         $model = new AnalysisModel();
-        $analyses = $model->getPaginated($page, $limit);
-        $totalCount = $model->getTotalCount();
-        $totalPages = ceil($totalCount / $limit);
+        $analyses = $model->searchPaginated($filters, $page, $limit);
+        $totalCount = $model->getSearchTotalCount($filters);
+        $totalPages = ceil($totalCount / $limit) ?: 1;
         
         echo json_encode([
             'data' => $analyses,
@@ -46,9 +75,21 @@ class AnalysisController {
     public function detail() {
         $id = $_GET['id'] ?? null;
         $page = $_GET['page'] ?? 1;
+        $searchType = $_GET['searchType'] ?? 'title';
+        $keyword = $_GET['keyword'] ?? '';
+        $orderBy = $_GET['orderBy'] ?? 'created_at';
+        $orderDir = $_GET['orderDir'] ?? 'DESC';
         
+        $queryParams = http_build_query([
+            'page' => $page,
+            'searchType' => $searchType,
+            'keyword' => $keyword,
+            'orderBy' => $orderBy,
+            'orderDir' => $orderDir
+        ]);
+
         if (!$id) {
-            header('Location: /analysis?page=' . $page);
+            header('Location: /analysis?' . $queryParams);
             exit;
         }
 
@@ -68,28 +109,47 @@ class AnalysisController {
             'tasks' => $tasks,
             'relatedVideos' => $relatedVideos,
             'currentEmbedding' => $currentEmbedding,
-            'page' => $page
+            'page' => $page,
+            'searchParams' => [
+                'searchType' => $searchType,
+                'keyword' => $keyword,
+                'orderBy' => $orderBy,
+                'orderDir' => $orderDir
+            ],
+            'queryString' => $queryParams
         ]);
     }
 
     public function delete() {
         $page = $_POST['page'] ?? 1;
+        $searchType = $_POST['searchType'] ?? 'title';
+        $keyword = $_POST['keyword'] ?? '';
+        $orderBy = $_POST['orderBy'] ?? 'created_at';
+        $orderDir = $_POST['orderDir'] ?? 'DESC';
+        
+        $queryParams = http_build_query([
+            'page' => $page,
+            'searchType' => $searchType,
+            'keyword' => $keyword,
+            'orderBy' => $orderBy,
+            'orderDir' => $orderDir
+        ]);
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /analysis?page=' . $page);
+            header('Location: /analysis?' . $queryParams);
             exit;
         }
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
-            header('Location: /analysis?page=' . $page);
+            header('Location: /analysis?' . $queryParams);
             exit;
         }
 
         $model = new AnalysisModel();
         $model->deleteAnalysis($id);
 
-        header('Location: /analysis?page=' . $page);
+        header('Location: /analysis?' . $queryParams);
         exit;
     }
 }

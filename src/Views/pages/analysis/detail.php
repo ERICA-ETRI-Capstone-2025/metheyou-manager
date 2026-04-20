@@ -3,7 +3,7 @@
         <!-- Top Actions -->
         <div class="top-actions">
             <!-- Back Button -->
-            <a href="/analysis?page=<?= htmlspecialchars($page ?? 1) ?>" class="back-button">
+            <a href="/analysis?<?= htmlspecialchars($queryString ?? 'page='.($page ?? 1)) ?>" class="back-button">
                 <i class="bx bx-arrow-back"></i>
                 <span>목록으로</span>
             </a>
@@ -12,6 +12,12 @@
             <form action="/analysis/delete" method="POST" class="delete-form" onsubmit="return confirm('이 분석 결과를 정말 삭제하시겠습니까?\nMariaDB(analysis, tasks, feedback)와 PostgreSQL(벡터DB)의 모든 관련 데이터가 영구적으로 삭제됩니다.');">
                 <input type="hidden" name="id" value="<?= htmlspecialchars($analysis['id']) ?>">
                 <input type="hidden" name="page" value="<?= htmlspecialchars($page ?? 1) ?>">
+                <?php if(isset($searchParams)): ?>
+                <input type="hidden" name="searchType" value="<?= htmlspecialchars($searchParams['searchType'] ?? '') ?>">
+                <input type="hidden" name="keyword" value="<?= htmlspecialchars($searchParams['keyword'] ?? '') ?>">
+                <input type="hidden" name="orderBy" value="<?= htmlspecialchars($searchParams['orderBy'] ?? '') ?>">
+                <input type="hidden" name="orderDir" value="<?= htmlspecialchars($searchParams['orderDir'] ?? '') ?>">
+                <?php endif; ?>
                 <button type="submit" class="delete-button">
                     <i class="bx bx-trash"></i>
                     <span>결과 삭제</span>

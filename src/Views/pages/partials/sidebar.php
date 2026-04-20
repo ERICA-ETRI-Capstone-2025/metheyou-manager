@@ -16,12 +16,6 @@ $menuGroups = [
             'title'        => '벡터 DB',
             'activePrefix' => ['/vectors']
         ],
-        [
-            'path'         => '/search',
-            'icon'         => 'bx-search',
-            'title'        => '레코드 검색',
-            'activePrefix' => ['/search']
-        ],
     ],
     '계정' => [
         [
@@ -49,7 +43,7 @@ $menuGroups = [
         [
             'path'         => '/settings/env',
             'icon'         => 'bx-cog',
-            'title'        => '환경 설정',
+            'title'        => '환경 변수',
             'activePrefix' => ['/settings/env']
         ],
     ],

@@ -1,5 +1,5 @@
 <div class="content">
-    <h2 class="title is-4">환경 변수(Env) 관리</h2>
+    <h2 class="title is-4">환경 변수</h2>
 
     <!-- Env List -->
     <div class="box mt-5">

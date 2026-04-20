@@ -1,60 +1,83 @@
-<?php $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); ?>
+<?php 
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); 
+
+// 메뉴 데이터 정의
+$menuGroups = [
+    '데이터베이스' => [
+        [
+            'path'         => '/analysis',
+            'icon'         => 'bx-bar-chart-alt-2',
+            'title'        => '분석 DB',
+            'activePrefix' => ['/', '/analysis']
+        ],
+        [
+            'path'         => '/vectors',
+            'icon'         => 'bx-cube',
+            'title'        => '벡터 DB',
+            'activePrefix' => ['/vectors']
+        ],
+        [
+            'path'         => '/search',
+            'icon'         => 'bx-search',
+            'title'        => '레코드 검색',
+            'activePrefix' => ['/search']
+        ],
+    ],
+    '계정' => [
+        [
+            'path'         => '/accounts',
+            'icon'         => 'bx-user-circle',
+            'title'        => '계정 관리',
+            'activePrefix' => ['/accounts']
+        ],
+    ],
+    '분석' => [
+        [
+            'path'         => '/insights',
+            'icon'         => 'bx-bar-chart-square',
+            'title'        => '인사이트',
+            'activePrefix' => ['/insights']
+        ],
+        [
+            'path'         => '/refer',
+            'icon'         => 'bx-link',
+            'title'        => '리퍼럴',
+            'activePrefix' => ['/refer']
+        ],
+    ],
+];
+
+// 활성화 여부 확인 함수
+$isActive = function($activePrefixPatterns, $currentPath) {
+    foreach ($activePrefixPatterns as $prefix) {
+        if ($prefix === '/' && $currentPath === '/') return true;
+        if ($prefix !== '/' && strpos($currentPath, $prefix) === 0) return true;
+    }
+    return false;
+};
+?>
 <aside class="layout-sidebar">    
     <div class="menu">
         <div class="logo">
-            <span>Metheyou<br/>
-            Manager</span>
+            <span>Metheyou<br/>Manager</span>
             <button class="mobile-close-btn" onclick="closeSidebarMobile()" style="background: transparent; border: none; cursor: pointer; display: none;">
                 <i class="bx bx-chevron-left" style="font-size: 1.5rem; color: var(--text-primary);"></i>
             </button>
         </div>
-        <p class="menu-label">데이터베이스</p>
-        <ul class="menu-list">
-            <li>
-                <a href="/analysis" class="menu-link <?= ($currentPath === '/' || strpos($currentPath, '/analysis') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-bar-chart-alt-2 mr-1"></i>
-                    분석 DB
-                </a>
-            </li>
-            <li>
-                <a href="/vectors" class="menu-link <?= (strpos($currentPath, '/vectors') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-cube mr-1"></i>
-                    벡터 DB
-                </a>
-            </li>
-            <li>
-                <a href="/vectors" class="menu-link <?= (strpos($currentPath, '/vectors') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-search mr-1"></i>
-                    레코드 검색
-                </a>
-            </li>
-        </ul>
 
-        <p class="menu-label">계정</p>
-        <ul class="menu-list">
-            <li>
-                <a href="/accounts" class="menu-link <?= (strpos($currentPath, '/accounts') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-user-circle mr-1"></i>
-                    계정 관리
-                </a>
-            </li>
-        </ul>
-
-        <p class="menu-label">분석</p>
-        <ul class="menu-list">
-            <li>
-                <a href="/analysis/history" class="menu-link <?= (strpos($currentPath, '/analysis/history') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-bar-chart-square mr-1"></i>
-                    인사이트
-                </a>
-            </li>
-            <li>
-                <a href="/analysis/compare" class="menu-link <?= (strpos($currentPath, '/analysis/compare') === 0) ? 'active' : '' ?>">
-                    <i class="bx bx-link mr-1"></i>
-                    리퍼럴
-                </a>    
-            </li>
-        </ul>
+        <?php foreach ($menuGroups as $groupName => $items): ?>
+            <p class="menu-label"><?= $groupName ?></p>
+            <ul class="menu-list">
+                <?php foreach ($items as $item): ?>
+                    <li>
+                        <a href="<?= $item['path'] ?>" class="menu-link <?= $isActive($item['activePrefix'], $currentPath) ? 'active' : '' ?>">
+                            <i class="bx <?= $item['icon'] ?> mr-1"></i>
+                            <?= $item['title'] ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endforeach; ?>
     </div>
 
     <!-- User Profile Footer -->

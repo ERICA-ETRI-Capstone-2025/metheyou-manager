@@ -72,7 +72,7 @@ html.theme-preload *::after {
 
 .login-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .login-icon {
@@ -83,7 +83,7 @@ html.theme-preload *::after {
     height: 60px;
     background-color: var(--login-primary);
     border-radius: 16px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     font-size: 2rem;
     color: white;
 }
@@ -97,7 +97,7 @@ html.theme-preload *::after {
 }
 
 .login-subtitle {
-    margin: 0.75rem 0 0 0;
+    margin: 0;
     font-size: 0.95rem;
     color: var(--login-subtitle);
     transition: color 0.3s ease;

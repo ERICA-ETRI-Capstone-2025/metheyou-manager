@@ -55,11 +55,9 @@
     <div class="login-card">
       <!-- Header -->
       <div class="login-header">
-        <div class="login-icon">
-          <i class="bx bx-lock"></i>
-        </div>
-        <h1 class="login-title">믿어유 매니저</h1>
-        <p class="login-subtitle">관리 페이지 로그인</p>
+        <img class="login-icon" src="/public/icon.png" alt="Login Icon">
+        <h1 class="login-title">Metheyou Manager</h1>
+        <p class="login-subtitle">믿어유 매니저 로그인</p>
       </div>
 
       <!-- Error Message -->
@@ -157,6 +155,14 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         htmlElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }
+
+    // 로그인 버튼 누르면 로딩 상태로 변경
+    const loginForm = document.querySelector('.login-form');
+    loginForm.addEventListener('submit', () => {
+        const loginButton = loginForm.querySelector('.login-button');
+        loginButton.disabled = true;
+        loginButton.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>로그인 중...</span>';
+    }); 
 </script>
 </body>
 </html>

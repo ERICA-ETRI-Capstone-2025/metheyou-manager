@@ -4,6 +4,7 @@ namespace App\Core;
 use App\Controllers\AuthController;
 use App\Controllers\AnalysisController;
 use App\Controllers\AccountController;
+use App\Controllers\ErrorController;
 
 class Router {
     public function run() {
@@ -55,8 +56,8 @@ class Router {
                 $controller->logout();
                 break;
             default:
-                http_response_code(404);
-                echo "Page Not Found";
+                $controller = new ErrorController();
+                $controller->notFound();                
                 break;
         }
     }

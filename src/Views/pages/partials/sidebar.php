@@ -60,9 +60,6 @@ $isActive = function($activePrefixPatterns, $currentPath) {
     <div class="menu">
         <div class="logo">
             <span>Metheyou<br/>Manager</span>
-            <button class="mobile-close-btn" onclick="closeSidebarMobile()" style="background: transparent; border: none; cursor: pointer; display: none;">
-                <i class="bx bx-chevron-left" style="font-size: 1.5rem; color: var(--text-primary);"></i>
-            </button>
         </div>
 
         <?php foreach ($menuGroups as $groupName => $items): ?>

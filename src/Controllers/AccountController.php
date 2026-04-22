@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Views\View;
 use App\Models\AccountModel;
+use App\Controllers\ErrorController;
 
 class AccountController {
     public function index() {
@@ -37,7 +38,7 @@ class AccountController {
             $id = $_POST['id'] ?? null;
             if ($id) {
                 $isSelf = (isset($_SESSION['user_id']) && $id == $_SESSION['user_id']);
-                $isSuperAdmin = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin');
+                $isSuperAdmin = \App\Controllers\AuthController::hasRole('Super Admin');
 
                 // 본인이거나 Super Admin인 경우에만 삭제 허용
                 if ($isSelf || $isSuperAdmin) {
@@ -49,6 +50,10 @@ class AccountController {
                         header('Location: /');
                         exit;
                     }
+                } else {
+                    $error = new ErrorController();
+                    $error->forbidden();
+                    exit;
                 }
             }
         }

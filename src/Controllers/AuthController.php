@@ -5,6 +5,10 @@ use App\Views\View;
 use App\Models\AccountModel;
 
 class AuthController {
+    public static function hasRole(...$roles) {
+        return isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], $roles, true);
+    }
+
     public function login() {
         View::render('auth/login');
     }

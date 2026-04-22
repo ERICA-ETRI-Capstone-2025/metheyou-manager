@@ -3,13 +3,15 @@ namespace App\Controllers;
 
 use App\Views\View;
 use App\Models\EnvModel;
+use App\Controllers\AuthController;
+use App\Controllers\ErrorController;
 
 class SettingsController {
     public function envIndex() {
         // 권한 확인 (Super Admin만 접근 가능)
-        $isSuperAdmin = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin');
-        if (!$isSuperAdmin) {
-            header('Location: /');
+        if (!AuthController::hasRole('Super Admin')) {
+            $error = new ErrorController();
+            $error->forbidden();
             exit;
         }
 
@@ -21,9 +23,9 @@ class SettingsController {
     }
 
     public function envStore() {
-        $isSuperAdmin = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin');
-        if (!$isSuperAdmin) {
-            header('Location: /');
+        if (!AuthController::hasRole('Super Admin')) {
+            $error = new ErrorController();
+            $error->forbidden();
             exit;
         }
 
@@ -40,9 +42,9 @@ class SettingsController {
     }
 
     public function envDelete() {
-        $isSuperAdmin = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin');
-        if (!$isSuperAdmin) {
-            header('Location: /');
+        if (!AuthController::hasRole('Super Admin')) {
+            $error = new ErrorController();
+            $error->forbidden();
             exit;
         }
 

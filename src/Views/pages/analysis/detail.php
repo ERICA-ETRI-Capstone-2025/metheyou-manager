@@ -189,7 +189,7 @@
             <div class="tasks-header">
                 <h3 class="tasks-header-title">
                     <i class="bx bx-math"></i>
-                    고유 벡터 (임베딩)
+                    영상 정보 벡터 (임베딩)
                 </h3>
             </div>
             <div style="padding: 0.8rem; font-family: monospace; font-size: 0.75rem; background: var(--bg-1); border-radius: 4px; word-break: break-all; color: var(--text-2);">

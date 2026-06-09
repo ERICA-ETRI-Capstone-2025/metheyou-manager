@@ -5,6 +5,12 @@
         </div>
         
         <form class="search-form" id="searchForm">
+            <label class="auto-refresh-toggle" for="autoRefreshToggle">
+                <input type="checkbox" id="autoRefreshToggle">
+                <span>자동 갱신</span>
+                <small id="autoRefreshCountdown"></small>
+            </label>
+
             <select name="searchType" id="searchType" class="search-select">
                 <option value="title" <?= $filters['searchType'] === 'title' ? 'selected' : '' ?>>영상명</option>
                 <option value="channel_name" <?= $filters['searchType'] === 'channel_name' ? 'selected' : '' ?>>채널명</option>
@@ -148,5 +154,6 @@
 <script>
 const INITIAL_CURRENT_PAGE = <?= $currentPage ?>;
 const INITIAL_TOTAL_COUNT = <?= $totalCount ?>;
+const INITIAL_ANALYSIS_IDS = <?= json_encode(array_map('intval', array_column($analyses, 'id')), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/public/js/analysis-index.js?t=<?= filemtime(__DIR__ . '/../../../../public/js/analysis-index.js') ?>"></script>

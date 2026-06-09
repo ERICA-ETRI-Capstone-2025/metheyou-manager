@@ -42,6 +42,7 @@ class AnalysisController {
         $keyword = $_GET['keyword'] ?? '';
         $orderBy = $_GET['orderBy'] ?? 'created_at';
         $orderDir = $_GET['orderDir'] ?? 'DESC';
+        $idOnly = filter_var($_GET['idOnly'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $filters = [
             'searchType' => $searchType,
@@ -58,9 +59,23 @@ class AnalysisController {
         }
         
         $model = new AnalysisModel();
-        $analyses = $model->searchPaginated($filters, $page, $limit);
         $totalCount = $model->getSearchTotalCount($filters);
         $totalPages = ceil($totalCount / $limit) ?: 1;
+        
+        if ($idOnly) {
+            $analysisIds = $model->searchPaginatedIds($filters, $page, $limit);
+
+            echo json_encode([
+                'ids' => $analysisIds,
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'totalCount' => $totalCount,
+                'limit' => $limit
+            ]);
+            exit;
+        }
+
+        $analyses = $model->searchPaginated($filters, $page, $limit);
         
         echo json_encode([
             'data' => $analyses,

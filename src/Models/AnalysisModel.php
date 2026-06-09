@@ -86,6 +86,32 @@ class AnalysisModel {
         return $stmt->fetchAll();
     }
 
+    public function searchPaginatedIds($filters, $page = 1, $limit = 15) {
+        $offset = (int)(($page - 1) * $limit);
+        $limit = (int)$limit;
+        $db = Database::getMariaDb();
+
+        $params = [];
+        list($joins, $where) = $this->buildSearchQuery($filters, $params);
+
+        $orderBy = $filters['orderBy'] ?? 'created_at';
+        $orderDir = strtoupper($filters['orderDir'] ?? 'DESC');
+
+        $allowedOrderColumns = ['created_at', 'channel_name', 'title'];
+        if (!in_array($orderBy, $allowedOrderColumns)) {
+            $orderBy = 'created_at';
+        }
+        if ($orderDir !== 'ASC' && $orderDir !== 'DESC') {
+            $orderDir = 'DESC';
+        }
+
+        $query = "SELECT DISTINCT a.id FROM analysis a $joins WHERE $where ORDER BY a.$orderBy $orderDir LIMIT $limit OFFSET $offset";
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+
+        return array_map('intval', array_column($stmt->fetchAll(), 'id'));
+    }
+
     public function getById($id) {
         $db = Database::getMariaDb();
         $stmt = $db->prepare("SELECT * FROM analysis WHERE id = ?");

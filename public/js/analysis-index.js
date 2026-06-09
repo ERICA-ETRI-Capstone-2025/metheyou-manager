@@ -1,20 +1,235 @@
 let currentPage = typeof INITIAL_CURRENT_PAGE !== 'undefined' ? INITIAL_CURRENT_PAGE : 1;
 let totalCount = typeof INITIAL_TOTAL_COUNT !== 'undefined' ? INITIAL_TOTAL_COUNT : 0;
 let totalPages = Math.max(1, Math.ceil(totalCount / 15));
+let lastRenderedIdSnapshot = null;
+let autoRefreshTimer = null;
+let autoRefreshCountdownTimer = null;
+let isAutoRefreshEnabled = false;
+let isAutoRefreshChecking = false;
+let autoRefreshSecondsRemaining = 10;
+let latestRequestId = 0;
+
+const AUTO_REFRESH_INTERVAL_MS = 10000;
+const AUTO_REFRESH_SECONDS = 10;
+
+function getActiveFilters() {
+    return {
+        searchType: document.getElementById('searchType').value,
+        keyword: document.getElementById('keyword').value,
+        orderBy: document.getElementById('orderBy').value,
+        orderDir: document.getElementById('orderDir').value,
+    };
+}
 
 function getFiltersQuery() {
-    const searchType = document.getElementById('searchType').value;
-    const keyword = document.getElementById('keyword').value;
-    const orderBy = document.getElementById('orderBy').value;
-    const orderDir = document.getElementById('orderDir').value;
+    const filters = getActiveFilters();
     
-    return `&searchType=${encodeURIComponent(searchType)}&keyword=${encodeURIComponent(keyword)}&orderBy=${encodeURIComponent(orderBy)}&orderDir=${encodeURIComponent(orderDir)}`;
+    return `&searchType=${encodeURIComponent(filters.searchType)}&keyword=${encodeURIComponent(filters.keyword)}&orderBy=${encodeURIComponent(filters.orderBy)}&orderDir=${encodeURIComponent(filters.orderDir)}`;
+}
+
+function buildIdSnapshot(response) {
+    return JSON.stringify({
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalCount: response.totalCount,
+        limit: response.limit,
+        ids: (response.ids || []).map(id => Number(id)),
+    });
+}
+
+function updateAutoRefreshCountdown(text) {
+    const status = document.getElementById('autoRefreshCountdown');
+    if (!status) {
+        return;
+    }
+
+    if (text == '') {
+        status.style.display = 'none';
+    } else {
+        status.style.display = 'inline';
+    }
+
+    status.textContent = text;
 }
 
 document.getElementById('searchForm').addEventListener('submit', function(e) {
     e.preventDefault();
     loadPage(1);
 });
+
+function getFetchUrl(page) {
+    return `/api/analysis?page=${page}${getFiltersQuery()}`;
+}
+
+function getDeltaFetchUrl(page) {
+    return `/api/analysis?page=${page}&idOnly=1${getFiltersQuery()}`;
+}
+
+function applyFetchedData(data, options = {}) {
+    const { pushState = true, scrollToTop = true, updateSnapshot = true } = options;
+
+    currentPage = data.currentPage;
+    totalPages = Math.max(1, data.totalPages);
+    renderTableRows(data.data);
+    updatePaginationUI(data.totalCount);
+
+    if (updateSnapshot) {
+        lastRenderedIdSnapshot = buildIdSnapshot({
+            currentPage: data.currentPage,
+            totalPages: data.totalPages,
+            totalCount: data.totalCount,
+            limit: data.limit,
+            ids: (data.data || []).map(row => row.id),
+        });
+    }
+    if (pushState) {
+        const url = new URL(window.location);
+        url.searchParams.set('page', currentPage);
+
+        const filters = getActiveFilters();
+        url.searchParams.set('searchType', filters.searchType);
+        url.searchParams.set('keyword', filters.keyword);
+        url.searchParams.set('orderBy', filters.orderBy);
+        url.searchParams.set('orderDir', filters.orderDir);
+
+        window.history.pushState({ page: currentPage }, '', url);
+    }
+
+    if (scrollToTop) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function fetchAnalysisPage(page) {
+    const requestId = ++latestRequestId;
+    return fetch(getFetchUrl(page))
+        .then(response => response.json())
+        .then(data => {
+            if (requestId !== latestRequestId) {
+                return null;
+            }
+
+            return data;
+        });
+}
+
+function fetchAnalysisIdSnapshot(page) {
+    const requestId = ++latestRequestId;
+    return fetch(getDeltaFetchUrl(page))
+        .then(response => response.json())
+        .then(data => {
+            if (requestId !== latestRequestId) {
+                return null;
+            }
+
+            return data;
+        });
+}
+
+function stopAutoRefreshTimers() {
+    if (autoRefreshTimer !== null) {
+        window.clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+
+    if (autoRefreshCountdownTimer !== null) {
+        window.clearInterval(autoRefreshCountdownTimer);
+        autoRefreshCountdownTimer = null;
+    }
+}
+
+function beginAutoRefreshCycle() {
+    if (!isAutoRefreshEnabled || isAutoRefreshChecking) {
+        return;
+    }
+
+    isAutoRefreshChecking = true;
+    updateAutoRefreshCountdown('...');
+
+    fetchAnalysisIdSnapshot(currentPage)
+        .then(data => {
+            if (!data) {
+                return null;
+            }
+
+            const nextSnapshot = buildIdSnapshot(data);
+            if (nextSnapshot !== lastRenderedIdSnapshot) {
+                return fetchAnalysisPage(currentPage).then(fullData => {
+                    if (!fullData) {
+                        return;
+                    }
+
+                    applyFetchedData(fullData, { pushState: false, scrollToTop: false, updateSnapshot: true });
+                });
+            }
+
+            return null;
+        })
+        .catch(error => {
+            console.error('Error auto-refreshing analysis data:', error);
+        })
+        .finally(() => {
+            isAutoRefreshChecking = false;
+            autoRefreshSecondsRemaining = AUTO_REFRESH_SECONDS;
+            updateAutoRefreshCountdown(`(${autoRefreshSecondsRemaining})`);
+        });
+}
+
+function tickAutoRefreshCountdown() {
+    if (!isAutoRefreshEnabled || isAutoRefreshChecking) {
+        return;
+    }
+
+    autoRefreshSecondsRemaining -= 1;
+    if (autoRefreshSecondsRemaining <= 0) {
+        beginAutoRefreshCycle();
+        return;
+    }
+
+    updateAutoRefreshCountdown(`(${autoRefreshSecondsRemaining})`);
+}
+
+function startAutoRefresh() {
+    isAutoRefreshEnabled = true;
+    stopAutoRefreshTimers();
+    autoRefreshSecondsRemaining = AUTO_REFRESH_SECONDS;
+    updateAutoRefreshCountdown(`(${autoRefreshSecondsRemaining})`);
+    autoRefreshCountdownTimer = window.setInterval(tickAutoRefreshCountdown, 1000);
+}
+
+function stopAutoRefresh() {
+    isAutoRefreshEnabled = false;
+    isAutoRefreshChecking = false;
+    stopAutoRefreshTimers();
+    autoRefreshSecondsRemaining = AUTO_REFRESH_SECONDS;
+    updateAutoRefreshCountdown(``);
+}
+
+function syncAutoRefreshToggle() {
+    const checkbox = document.getElementById('autoRefreshToggle');
+    if (!checkbox) {
+        return;
+    }
+
+    const savedValue = window.localStorage.getItem('analysisAutoRefreshEnabled');
+    const shouldEnable = savedValue === 'true';
+    checkbox.checked = shouldEnable;
+
+    if (shouldEnable) {
+        startAutoRefresh();
+    } else {
+        stopAutoRefresh();
+    }
+
+    checkbox.addEventListener('change', function() {
+        window.localStorage.setItem('analysisAutoRefreshEnabled', String(checkbox.checked));
+        if (checkbox.checked) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+}
 
 function renderTableRows(data) {
     const tbody = document.getElementById('analysisTableBody');
@@ -127,27 +342,36 @@ function updatePaginationUI(totalCountParam = null) {
 
 function loadPage(page, pushState = true) {
     const filtersStr = getFiltersQuery();
+    const requestId = ++latestRequestId;
+
     fetch(`/api/analysis?page=${page}${filtersStr}`)
         .then(response => response.json())
         .then(data => {
+            if (requestId !== latestRequestId) {
+                return;
+            }
+
             currentPage = data.currentPage;
             totalPages = Math.max(1, data.totalPages);
             renderTableRows(data.data);
             updatePaginationUI(data.totalCount);
+            lastRenderedIdSnapshot = buildIdSnapshot({
+                currentPage: data.currentPage,
+                totalPages: data.totalPages,
+                totalCount: data.totalCount,
+                limit: data.limit,
+                ids: (data.data || []).map(row => row.id),
+            });
             
             if (pushState) {
                 const url = new URL(window.location);
                 url.searchParams.set('page', page);
-                
-                const searchType = document.getElementById('searchType').value;
-                const keyword = document.getElementById('keyword').value;
-                const orderBy = document.getElementById('orderBy').value;
-                const orderDir = document.getElementById('orderDir').value;
-                
-                url.searchParams.set('searchType', searchType);
-                url.searchParams.set('keyword', keyword);
-                url.searchParams.set('orderBy', orderBy);
-                url.searchParams.set('orderDir', orderDir);
+
+                const filters = getActiveFilters();
+                url.searchParams.set('searchType', filters.searchType);
+                url.searchParams.set('keyword', filters.keyword);
+                url.searchParams.set('orderBy', filters.orderBy);
+                url.searchParams.set('orderDir', filters.orderDir);
 
                 window.history.pushState({ page: page }, '', url);
             }
@@ -211,5 +435,21 @@ document.addEventListener('DOMContentLoaded', function() {
         currentUrl.searchParams.set('page', currentPage);
         window.history.replaceState({ page: currentPage }, '', currentUrl);
     }
+
+    if (typeof INITIAL_ANALYSIS_IDS !== 'undefined' && Array.isArray(INITIAL_ANALYSIS_IDS)) {
+        lastRenderedIdSnapshot = buildIdSnapshot({
+            currentPage,
+            totalPages,
+            totalCount,
+            limit: 15,
+            ids: INITIAL_ANALYSIS_IDS,
+        });
+    }
+
+    syncAutoRefreshToggle();
     updatePaginationUI();
+});
+
+window.addEventListener('beforeunload', function() {
+    stopAutoRefreshTimers();
 });

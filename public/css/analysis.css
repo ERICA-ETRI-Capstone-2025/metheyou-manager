@@ -4,6 +4,41 @@
     margin-bottom: 2.5rem;
 }
 
+.auto-refresh-toggle {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.2rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.auto-refresh-toggle span {
+    margin-left: 0.5rem;
+}
+
+.auto-refresh-toggle input {
+    margin: 0;
+}
+
+.auto-refresh-toggle small {
+    color: var(--text-muted);
+    font-weight: 500;
+    width: 27px;
+    text-align: center;
+}
+
+.auto-refresh-status {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.auto-refresh-status[data-state="error"] {
+    color: var(--danger-color);
+}
+
 .analysis-title {
     color: var(--text-primary);
     font-size: 2rem;

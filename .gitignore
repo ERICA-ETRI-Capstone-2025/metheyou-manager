@@ -1,2 +1,5 @@
 .env
 vendor/
+.min.css
+.min.js
+.DS_Store

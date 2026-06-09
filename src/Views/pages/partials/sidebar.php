@@ -67,7 +67,7 @@ $isActive = function($activePrefixPatterns, $currentPath) {
         <?php foreach ($menuGroups as $groupName => $items): ?>
             <?php 
                 // 설정 메뉴는 Super Admin에게만 표시
-                if ($groupName === '설정' && (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'Super Admin')) {
+                if ($groupName === '설정' && !\App\Controllers\AuthController::hasRole('Super Admin')) {
                     continue;
                 }
             ?>

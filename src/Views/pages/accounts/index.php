@@ -32,7 +32,7 @@
                                     <form action="/accounts/delete" method="POST" style="display:inline;" onsubmit="return confirm('정말 삭제하시겠습니까?');">
                                         <input type="hidden" name="id" value="<?= htmlspecialchars($account['id']) ?>">
                                         <?php 
-                                            $canDelete = isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $account['id'] || (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Super Admin'));
+                                            $canDelete = isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $account['id'] || \App\Controllers\AuthController::hasRole('Super Admin'));
                                         ?>
                                         <button type="submit" class="button is-small is-danger" <?= !$canDelete ? 'disabled' : '' ?>>
                                             <i class="bx bx-trash"></i> 삭제
